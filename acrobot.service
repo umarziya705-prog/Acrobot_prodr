@@ -1,0 +1,44 @@
+[Unit]
+Description=AcroBot 2.2 - AI Voice Assistant for Aikcropolis College
+After=network.target sound.target
+
+[Service]
+Type=simple
+User=acrobot
+Group=acrobot
+WorkingDirectory=/opt/acrobot
+Environment="PATH=/opt/acrobot/venv/bin"
+Environment="ENVIRONMENT=production"
+Environment="LOG_LEVEL=INFO"
+EnvironmentFile=/opt/acrobot/.env
+
+# Restart configuration
+Restart=always
+RestartSec=10
+StartLimitInterval=60
+StartLimitBurst=3
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/acrobot/logs /opt/acrobot/temp
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+# Logging
+StandardOutput=append:/opt/acrobot/logs/acrobot.log
+StandardError=append:/opt/acrobot/logs/acrobot-error.log
+
+# Exec configuration
+ExecStart=/opt/acrobot/venv/bin/python /opt/acrobot/main.py
+ExecStop=/bin/kill -TERM $MAINPID
+
+# Health check
+ExecStartPost=/bin/sleep 5
+
+[Install]
+WantedBy=multi-user.target

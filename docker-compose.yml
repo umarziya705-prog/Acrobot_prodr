@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  acrobot:
+    build: .
+    container_name: acrobot-2.2
+    restart: unless-stopped
+    
+    # Environment variables
+    env_file:
+      - .env
+    
+    environment:
+      - ENVIRONMENT=production
+      - LOG_LEVEL=INFO
+    
+    # Device access for audio (Linux only)
+    # Note: Audio devices typically don't work in containers without special setup
+    # This is mainly for development/testing purposes
+    # devices:
+    #   - /dev/snd:/dev/snd
+    
+    # Volumes for logs and persistence
+    volumes:
+      - ./logs:/app/logs
+      - ./temp:/app/temp
+    
+    # Network mode (host for audio device access on Linux)
+    # network_mode: host
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "python", "-c", "from main import health_check; import sys; sys.exit(0 if health_check()['status'] != 'unhealthy' else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
